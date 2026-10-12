@@ -1,4 +1,8 @@
-#include <bits/stdc++.h>
+#include <cstdio>
+#include <vector>
+#include <map>
+#include <algorithm>
+
 using namespace std;
 
 class DSU {
@@ -8,11 +12,16 @@ private:
     
 public:
     DSU(int n) : parent(n), rank(n, 0) {
-        iota(parent.begin(), parent.end(), 0);
+        for (int i = 0; i < n; i++) {
+            parent[i] = i;
+        }
     }
     
     int find(int x) {
-        return parent[x] == x ? x : parent[x] = find(parent[x]);
+        if (parent[x] != x) {
+            parent[x] = find(parent[x]);
+        }
+        return parent[x];
     }
     
     void unite(int x, int y) {
@@ -32,9 +41,6 @@ public:
 };
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-    
     int t;
     scanf("%d", &t);
     
@@ -45,10 +51,6 @@ int main() {
         vector<pair<long long, long long>> equality_constraints;
         vector<pair<long long, long long>> inequality_constraints;
         vector<long long> vars;
-        
-        equality_constraints.reserve(n);
-        inequality_constraints.reserve(n);
-        vars.reserve(n * 2);
         
         // Read all constraints and categorize them
         for (int k = 0; k < n; k++) {
@@ -70,8 +72,7 @@ int main() {
         sort(vars.begin(), vars.end());
         vars.erase(unique(vars.begin(), vars.end()), vars.end());
         
-        unordered_map<long long, int> var_to_idx;
-        var_to_idx.reserve(vars.size() * 2);
+        map<long long, int> var_to_idx;
         for (int i = 0; i < (int)vars.size(); i++) {
             var_to_idx[vars[i]] = i;
         }
