@@ -1,6 +1,6 @@
 #include <iostream>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <cstdio>
 #include <algorithm>
 
@@ -42,7 +42,8 @@ public:
 };
 
 struct Constraint {
-    int i, j, e;
+    long long i, j;
+    int e;
 };
 
 int main() {
@@ -54,31 +55,38 @@ int main() {
         scanf("%d", &n);
         
         vector<Constraint> constraints;
-        unordered_map<long long, int> var_to_idx;
-        int idx_count = 0;
+        constraints.reserve(n);
+        vector<long long> vars;
+        vars.reserve(n * 2);
         
-        // Read all constraints and map variables to indices
+        // Read all constraints and collect variables
         for (int k = 0; k < n; k++) {
             long long i, j;
             int e;
             scanf("%lld %lld %d", &i, &j, &e);
             
-            if (var_to_idx.find(i) == var_to_idx.end()) {
-                var_to_idx[i] = idx_count++;
-            }
-            if (var_to_idx.find(j) == var_to_idx.end()) {
-                var_to_idx[j] = idx_count++;
-            }
-            
-            constraints.push_back({var_to_idx[i], var_to_idx[j], e});
+            constraints.push_back({i, j, e});
+            vars.push_back(i);
+            vars.push_back(j);
         }
         
-        DSU dsu(idx_count);
+        // Coordinate compression
+        sort(vars.begin(), vars.end());
+        vars.erase(unique(vars.begin(), vars.end()), vars.end());
+        
+        map<long long, int> var_to_idx;
+        for (int i = 0; i < (int)vars.size(); i++) {
+            var_to_idx[vars[i]] = i;
+        }
+        
+        DSU dsu(vars.size());
         
         // Process equality constraints first
         for (const auto& cons : constraints) {
             if (cons.e == 1) {
-                dsu.unite(cons.i, cons.j);
+                int idx_i = var_to_idx[cons.i];
+                int idx_j = var_to_idx[cons.j];
+                dsu.unite(idx_i, idx_j);
             }
         }
         
@@ -86,7 +94,9 @@ int main() {
         bool possible = true;
         for (const auto& cons : constraints) {
             if (cons.e == 0) {
-                if (dsu.find(cons.i) == dsu.find(cons.j)) {
+                int idx_i = var_to_idx[cons.i];
+                int idx_j = var_to_idx[cons.j];
+                if (dsu.find(idx_i) == dsu.find(idx_j)) {
                     possible = false;
                     break;
                 }
