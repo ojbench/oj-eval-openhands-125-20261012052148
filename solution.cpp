@@ -31,11 +31,6 @@ public:
     }
 };
 
-struct Constraint {
-    long long i, j;
-    int e;
-};
-
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
@@ -47,20 +42,28 @@ int main() {
         int n;
         scanf("%d", &n);
         
-        vector<Constraint> constraints;
-        constraints.reserve(n);
+        vector<pair<long long, long long>> equality_constraints;
+        vector<pair<long long, long long>> inequality_constraints;
         vector<long long> vars;
+        
+        equality_constraints.reserve(n);
+        inequality_constraints.reserve(n);
         vars.reserve(n * 2);
         
-        // Read all constraints and collect variables
+        // Read all constraints and categorize them
         for (int k = 0; k < n; k++) {
             long long i, j;
             int e;
             scanf("%lld %lld %d", &i, &j, &e);
             
-            constraints.push_back({i, j, e});
             vars.push_back(i);
             vars.push_back(j);
+            
+            if (e == 1) {
+                equality_constraints.push_back({i, j});
+            } else {
+                inequality_constraints.push_back({i, j});
+            }
         }
         
         // Coordinate compression
@@ -75,21 +78,17 @@ int main() {
         
         DSU dsu(vars.size());
         
-        // Process equality constraints first
-        for (const auto& cons : constraints) {
-            if (cons.e == 1) {
-                dsu.unite(var_to_idx[cons.i], var_to_idx[cons.j]);
-            }
+        // Process equality constraints
+        for (const auto& cons : equality_constraints) {
+            dsu.unite(var_to_idx[cons.first], var_to_idx[cons.second]);
         }
         
         // Check inequality constraints for conflicts
         bool possible = true;
-        for (const auto& cons : constraints) {
-            if (cons.e == 0) {
-                if (dsu.find(var_to_idx[cons.i]) == dsu.find(var_to_idx[cons.j])) {
-                    possible = false;
-                    break;
-                }
+        for (const auto& cons : inequality_constraints) {
+            if (dsu.find(var_to_idx[cons.first]) == dsu.find(var_to_idx[cons.second])) {
+                possible = false;
+                break;
             }
         }
         
