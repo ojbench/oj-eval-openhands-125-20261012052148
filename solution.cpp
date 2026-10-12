@@ -1,9 +1,4 @@
-#include <iostream>
-#include <vector>
-#include <map>
-#include <cstdio>
-#include <algorithm>
-
+#include <bits/stdc++.h>
 using namespace std;
 
 class DSU {
@@ -13,16 +8,11 @@ private:
     
 public:
     DSU(int n) : parent(n), rank(n, 0) {
-        for (int i = 0; i < n; i++) {
-            parent[i] = i;
-        }
+        iota(parent.begin(), parent.end(), 0);
     }
     
     int find(int x) {
-        if (parent[x] != x) {
-            parent[x] = find(parent[x]);
-        }
-        return parent[x];
+        return parent[x] == x ? x : parent[x] = find(parent[x]);
     }
     
     void unite(int x, int y) {
@@ -47,6 +37,9 @@ struct Constraint {
 };
 
 int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+    
     int t;
     scanf("%d", &t);
     
@@ -74,7 +67,8 @@ int main() {
         sort(vars.begin(), vars.end());
         vars.erase(unique(vars.begin(), vars.end()), vars.end());
         
-        map<long long, int> var_to_idx;
+        unordered_map<long long, int> var_to_idx;
+        var_to_idx.reserve(vars.size() * 2);
         for (int i = 0; i < (int)vars.size(); i++) {
             var_to_idx[vars[i]] = i;
         }
@@ -84,9 +78,7 @@ int main() {
         // Process equality constraints first
         for (const auto& cons : constraints) {
             if (cons.e == 1) {
-                int idx_i = var_to_idx[cons.i];
-                int idx_j = var_to_idx[cons.j];
-                dsu.unite(idx_i, idx_j);
+                dsu.unite(var_to_idx[cons.i], var_to_idx[cons.j]);
             }
         }
         
@@ -94,9 +86,7 @@ int main() {
         bool possible = true;
         for (const auto& cons : constraints) {
             if (cons.e == 0) {
-                int idx_i = var_to_idx[cons.i];
-                int idx_j = var_to_idx[cons.j];
-                if (dsu.find(idx_i) == dsu.find(idx_j)) {
+                if (dsu.find(var_to_idx[cons.i]) == dsu.find(var_to_idx[cons.j])) {
                     possible = false;
                     break;
                 }
